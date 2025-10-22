@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# commit-msg - Enforce conventional commit message format
+# Validates commit messages follow the pattern: <type>(<scope>): <subject>
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Valid types according to Conventional Commits specification
+VALID_TYPES="feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert"
+
+# Conventional commit pattern with optional scope
+# Format: <type>(<scope>): <subject>
+# Example: feat(auth): add OAuth2 login
+PATTERN="^(${VALID_TYPES})(\(.+\))?: .{1,80}"
+
+# Allow merge commits and revert commits
+if echo "$COMMIT_MSG" | grep -qE "^Merge|^Revert"; then
+    exit 0
+fi
+
+# Validate commit message format
+if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
+    cat <<EOF
+Error: Invalid commit message format
+
+Expected format: <type>(<scope>): <subject>
+
+Valid types:
+  feat     - New feature
+  fix      - Bug fix
+  docs     - Documentation changes
+  style    - Code style changes (formatting, etc.)
+  refactor - Code refactoring
+  test     - Adding or updating tests
+  chore    - Maintenance tasks
+  perf     - Performance improvements
+  ci       - CI/CD changes
+  build    - Build system changes
+  revert   - Revert a previous commit
+
+Examples:
+  feat(auth): add OAuth2 authentication
+  fix(api): resolve null pointer in user handler
+  docs: update installation instructions
+  refactor(database): optimize query performance
+
+Your commit message:
+${COMMIT_MSG}
+
+EOF
+    exit 1
+fi
+
+# Check subject line length (should be ≤ 50 chars ideally, error at 80)
+SUBJECT=$(echo "$COMMIT_MSG" | head -1)
+SUBJECT_LENGTH=${#SUBJECT}
+
+if [ $SUBJECT_LENGTH -gt 80 ]; then
+    echo "Error: Commit subject too long (${SUBJECT_LENGTH} chars, max 80)"
+    echo "Subject: ${SUBJECT}"
+    exit 1
+fi
+
+if [ $SUBJECT_LENGTH -gt 50 ]; then
+    echo "Warning: Commit subject is long (${SUBJECT_LENGTH} chars, recommended ≤ 50)"
+    echo "Consider making it more concise."
+fi
+
+# Success
+exit 0

@@ -1,0 +1,25 @@
+name: Mobile Build
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Build profile'
+        required: true
+        default: 'preview'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - uses: expo/expo-github-action@v8
+        with:
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Install and build
+        working-directory: services/mobile
+        run: |
+          npm ci
+          npm test
+          eas build --platform all --profile ${{ github.event.inputs.profile }} --non-interactive --no-wait

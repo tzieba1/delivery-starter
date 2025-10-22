@@ -1,0 +1,9 @@
+version: '3.9'
+services:
+  backend:
+    build:
+      target: production
+    restart: unless-stopped
+    environment:
+      DEBUG: "false"
+      WORKERS: 4
