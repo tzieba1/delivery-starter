@@ -1,0 +1,38 @@
+{
+  "name": "pindrop-mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "clean": "rm -rf node_modules package-lock.json .expo && npm install",
+    "todos": "bash scripts/extract.sh --todo",
+    "todos:sync": "node scripts/sync.js --todo",
+    "fixmes": "bash scripts/extract.sh --fixme",
+    "fixmes:sync": "node scripts/sync.js --fixme",
+    "test:sync": "node scripts/sync.test.js",
+    "sync:all": "npm run todos:sync && npm run fixmes:sync"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
+    "@react-navigation/bottom-tabs": "^7.5.0",
+    "@react-navigation/native": "^7.1.18",
+    "@types/react-native": "^0.72.8",
+    "axios": "^1.12.2",
+    "expo": "~54.0.20",
+    "expo-constants": "~18.0.10",
+    "expo-status-bar": "~3.0.8",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-gesture-handler": "~2.28.0",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.2"
+  },
+  "private": true
+}
