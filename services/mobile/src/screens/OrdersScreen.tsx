@@ -114,7 +114,7 @@ export default function OrdersScreen() {
       <View style={styles.orderDetails}>
         <View style={styles.addressRow}>
           <Ionicons name="location-outline" size={16} color="#666" />
-          <Text style={styles.addressText} numberOfLines={1}>
+          <Text style={[styles.addressText, { marginLeft: 5 }]} numberOfLines={1}>
             {item.delivery_address}
           </Text>
         </View>
@@ -290,12 +290,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   orderDetails: {
-    gap: 8,
+    paddingVertical: 4,
   },
   addressRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
   },
   addressText: {
     flex: 1,
@@ -305,7 +304,7 @@ const styles = StyleSheet.create({
   orderFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 5,
+    marginTop: 8,
   },
   itemCount: {
     fontSize: 14,

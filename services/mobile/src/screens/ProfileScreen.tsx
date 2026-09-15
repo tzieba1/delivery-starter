@@ -66,7 +66,7 @@ export default function ProfileScreen() {
     <View style={styles.infoRow}>
       <View style={styles.infoLeft}>
         <Ionicons name={iconName} size={20} color="#007AFF" />
-        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={[styles.infoLabel, { marginLeft: 10 }]}>{label}</Text>
       </View>
       <Text style={styles.infoValue}>{value}</Text>
     </View>
@@ -129,7 +129,7 @@ export default function ProfileScreen() {
 
         <TouchableOpacity style={styles.actionButton} onPress={handleTestConnection}>
           <Ionicons name="refresh-outline" size={20} color="#007AFF" />
-          <Text style={styles.actionButtonText}>Test Connection</Text>
+          <Text style={[styles.actionButtonText, { marginLeft: 8 }]}>Test Connection</Text>
         </TouchableOpacity>
       </View>
 
@@ -210,7 +210,6 @@ const styles = StyleSheet.create({
   infoLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
   },
   infoLabel: {
     fontSize: 16,
@@ -251,7 +250,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     padding: 12,
     borderWidth: 1,
     borderColor: '#007AFF',

@@ -2,23 +2,16 @@
 API Schemas - Request/Response Models
 Defines the contract between mobile app and backend API
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from .models import OrderStatus, OrderItem, Order
+from ..models import OrderStatus, OrderItem, Order
 
 
 class OrderCreate(BaseModel):
     """Schema for creating new orders via POST /api/v1/orders"""
-    customer_name: str = Field(..., min_length=1, max_length=100)
-    customer_phone: str = Field(..., pattern=r"^\+?1?\d{9,15}$")
-    pickup_address: str = Field(..., min_length=5, max_length=200)
-    delivery_address: str = Field(..., min_length=5, max_length=200)
-    items: List[OrderItem] = Field(..., min_items=1)
-    total_amount: float = Field(..., gt=0)
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "customer_name": "Jane Smith",
                 "customer_phone": "+15550123",
@@ -28,12 +21,21 @@ class OrderCreate(BaseModel):
                     {
                         "name": "Large Pepperoni Pizza",
                         "quantity": 1,
-                        "price": 18.99
+                        "price": 18.99,
+                        "notes": None
                     }
                 ],
                 "total_amount": 18.99
             }
         }
+    )
+
+    customer_name: str = Field(..., min_length=1, max_length=100)
+    customer_phone: str = Field(..., pattern=r"^\+?1?\d{9,15}$")
+    pickup_address: str = Field(..., min_length=5, max_length=200)
+    delivery_address: str = Field(..., min_length=5, max_length=200)
+    items: List[OrderItem] = Field(..., min_length=1)
+    total_amount: float = Field(..., gt=0)
 
 
 class OrderUpdate(BaseModel):
@@ -45,16 +47,17 @@ class OrderUpdate(BaseModel):
 
 class LocationUpdate(BaseModel):
     """Schema for updating driver location during delivery"""
-    latitude: float = Field(..., ge=-90, le=90)
-    longitude: float = Field(..., ge=-180, le=180)
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "latitude": 40.7128,
                 "longitude": -74.0060
             }
         }
+    )
+
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
 
 
 class OrderResponse(BaseModel):

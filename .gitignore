@@ -45,6 +45,11 @@ htmlcov/
 
 # Node
 node_modules/
+node_modules*/
+**/node_modules/
+**/node_modules*/
+.expo/
+**/.expo/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -93,3 +98,6 @@ Thumbs.db
 backups/
 *.tar.gz
 *.zip
+
+# TODO Tracker state (regenerated on sync)
+.todo-tracker/

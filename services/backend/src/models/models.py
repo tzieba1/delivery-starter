@@ -2,7 +2,7 @@
 Domain Models - Delivery Application
 Represents core business entities
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional, List
 from enum import Enum
@@ -43,25 +43,11 @@ class OrderItem(BaseModel):
 class Order(BaseModel):
     """
     Core order entity
-    
+
     Represents a delivery order from creation through completion
     """
-    id: str
-    customer_name: str
-    customer_phone: str
-    pickup_address: str
-    delivery_address: str
-    items: List[OrderItem]
-    total_amount: float
-    status: OrderStatus
-    driver_id: Optional[str] = None
-    notes: Optional[str] = None
-    current_location: Optional[DeliveryLocation] = None
-    created_at: datetime
-    updated_at: datetime
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "id": "ORD-000001",
                 "customer_name": "John Doe",
@@ -81,3 +67,18 @@ class Order(BaseModel):
                 "updated_at": "2024-01-15T10:30:00Z",
             }
         }
+    )
+
+    id: str
+    customer_name: str
+    customer_phone: str
+    pickup_address: str
+    delivery_address: str
+    items: List[OrderItem]
+    total_amount: float
+    status: OrderStatus
+    driver_id: Optional[str] = None
+    notes: Optional[str] = None
+    current_location: Optional[DeliveryLocation] = None
+    created_at: datetime
+    updated_at: datetime

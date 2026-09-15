@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#
+# post-checkout hook: Sync after branch switch
+#
+# Runs after git checkout/switch to update TODO tracking
+# for the current branch's state.
+#
+# Arguments from git:
+#   $1 - ref of previous HEAD
+#   $2 - ref of new HEAD
+#   $3 - flag (1 = branch checkout, 0 = file checkout)
+#
+
+set -euo pipefail
+
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+# Only run on branch checkouts, not file checkouts
+if [[ "${3:-0}" != "1" ]]; then
+    exit 0
+fi
+
+find_tracker() {
+    local locations=(
+        "./tools/todo-tracker-rust/target/release/todo-tracker"
+        "./tools/todo-tracker-go/todo-tracker"
+        "todo-tracker"
+    )
+
+    for loc in "${locations[@]}"; do
+        if command -v "$loc" &> /dev/null || [[ -x "$loc" ]]; then
+            echo "$loc"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+main() {
+    TRACKER=$(find_tracker) || exit 0
+
+    echo -e "${BLUE}[post-checkout]${NC} Syncing TODOs for branch..."
+    "$TRACKER" --all 2>/dev/null || true
+    echo -e "${GREEN}[post-checkout]${NC} Done"
+}
+
+main "$@"

@@ -9,6 +9,7 @@ FROM base as development
 RUN pip install --no-cache-dir pytest pytest-cov black flake8
 COPY services/backend/src ./src
 COPY services/backend/tests ./tests
+COPY services/backend/pytest.ini ./pytest.ini
 EXPOSE 8000
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 

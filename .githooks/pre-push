@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+#
+# pre-push hook: Validate before pushing to remote
+#
+# Checks:
+# 1. No URGENT TODOs blocking push (optional)
+# 2. TODO.md is in sync
+# 3. Tests pass (optional)
+#
+
+set -euo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Configuration (set to 1 to enable)
+BLOCK_ON_URGENT=0       # Block push if URGENT TODOs exist
+REQUIRE_SYNC=1          # Ensure TODO.md is synchronized
+RUN_TESTS=0             # Run tests before push
+
+find_tracker() {
+    local locations=(
+        "./tools/todo-tracker-rust/target/release/todo-tracker"
+        "./tools/todo-tracker-go/todo-tracker"
+        "todo-tracker"
+    )
+
+    for loc in "${locations[@]}"; do
+        if command -v "$loc" &> /dev/null || [[ -x "$loc" ]]; then
+            echo "$loc"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+main() {
+    local remote="$1"
+    local url="$2"
+
+    echo -e "${BLUE}[pre-push]${NC} Running pre-push checks..."
+
+    # Check TODO sync
+    if [[ "$REQUIRE_SYNC" == "1" ]]; then
+        TRACKER=$(find_tracker) || true
+
+        if [[ -n "${TRACKER:-}" ]]; then
+            # Run dry-run to check if files would change
+            "$TRACKER" --all --dry-run > /tmp/todo-sync-check 2>&1 || true
+
+            if git diff --quiet TODO.md FIXME.md 2>/dev/null; then
+                echo -e "${GREEN}[pre-push]${NC} TODO tracking is synchronized"
+            else
+                echo -e "${YELLOW}[pre-push]${NC} Warning: TODO.md may be out of sync"
+                echo "  Run: todo-tracker --all"
+            fi
+        fi
+    fi
+
+    # Check for URGENT TODOs
+    if [[ "$BLOCK_ON_URGENT" == "1" ]] && [[ -f TODO.md ]]; then
+        if grep -q '\[URGENT\]' TODO.md; then
+            echo -e "${RED}[pre-push]${NC} Push blocked: URGENT TODOs must be resolved"
+            grep -n '\[URGENT\]' TODO.md
+            exit 1
+        fi
+    fi
+
+    # Run tests
+    if [[ "$RUN_TESTS" == "1" ]]; then
+        echo -e "${BLUE}[pre-push]${NC} Running tests..."
+        # Add your test command here
+        # npm test || exit 1
+        # cargo test || exit 1
+        # go test ./... || exit 1
+    fi
+
+    echo -e "${GREEN}[pre-push]${NC} All pre-push checks passed"
+}
+
+main "$@"

@@ -1,93 +1,47 @@
 #!/usr/bin/env bash
-# post-merge - Automated actions after successful merge
-# Rebuilds environment if dependencies changed, notifies of configuration changes
+#
+# post-merge hook: Sync TODOs after pulling changes
+#
+# Runs after git pull/merge to ensure TODO tracking reflects merged changes.
+# This catches TODOs added/removed by other developers.
+#
 
-set -e
+set -euo pipefail
 
-# Colors
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-print_info() { echo -e "${BLUE}➜ $1${NC}"; }
-print_success() { echo -e "${GREEN}✓ $1${NC}"; }
-print_warning() { echo -e "${YELLOW}⚠ $1${NC}"; }
+find_tracker() {
+    local locations=(
+        "./tools/todo-tracker-rust/target/release/todo-tracker"
+        "./tools/todo-tracker-go/todo-tracker"
+        "todo-tracker"
+    )
 
-# Files that trigger rebuilds when changed
-DEPENDENCY_FILES=(
-    "services/backend/requirements.txt"
-    "services/backend/Dockerfile"
-    "services/frontend/Dockerfile"
-    "infrastructure/docker-compose.yml"
-)
+    for loc in "${locations[@]}"; do
+        if command -v "$loc" &> /dev/null || [[ -x "$loc" ]]; then
+            echo "$loc"
+            return 0
+        fi
+    done
 
-CONFIG_FILES=(
-    ".env.example"
-    "infrastructure/docker-compose.dev.yml"
-    "infrastructure/docker-compose.prod.yml"
-)
+    return 1
+}
 
-# Check if specific files changed in merge
-changed_files=$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD)
+main() {
+    echo -e "${BLUE}[post-merge]${NC} Checking TODO/FIXME changes from merge..."
 
-rebuild_needed=false
-config_changed=false
+    TRACKER=$(find_tracker) || {
+        echo -e "${YELLOW}[post-merge]${NC} todo-tracker not found, skipping"
+        exit 0
+    }
 
-# Check dependency files
-for file in "${DEPENDENCY_FILES[@]}"; do
-    if echo "$changed_files" | grep -q "^${file}$"; then
-        print_info "Dependency file changed: ${file}"
-        rebuild_needed=true
-    fi
-done
+    # Run in verbose mode to show what changed
+    "$TRACKER" --all --verbose 2>/dev/null || true
 
-# Check configuration files
-for file in "${CONFIG_FILES[@]}"; do
-    if echo "$changed_files" | grep -q "^${file}$"; then
-        print_warning "Configuration file changed: ${file}"
-        config_changed=true
-    fi
-done
+    echo -e "${GREEN}[post-merge]${NC} TODO sync complete"
+}
 
-# Rebuild if needed
-if [ "$rebuild_needed" = true ]; then
-    echo ""
-    print_warning "Dependencies changed - rebuild recommended"
-    echo ""
-    echo "To rebuild Docker images:"
-    echo "  make build"
-    echo ""
-    echo "To restart services:"
-    echo "  make dev"
-    echo ""
-fi
-
-# Notify about configuration changes
-if [ "$config_changed" = true ]; then
-    echo ""
-    print_warning "Configuration files changed"
-    echo "Review changes and update your local environment if needed:"
-    echo "  git diff ORIG_HEAD HEAD -- .env.example"
-    echo ""
-fi
-
-# Check if new Git hooks were added/modified
-if echo "$changed_files" | grep -q "^.githooks/"; then
-    echo ""
-    print_info "Git hooks updated"
-    echo "Re-apply hooks with:"
-    echo "  chmod +x .githooks/*"
-    echo "  git config core.hooksPath .githooks"
-    echo ""
-fi
-
-# Check if new tags were pulled
-NEW_TAGS=$(git tag --points-at HEAD)
-if [ -n "$NEW_TAGS" ]; then
-    echo ""
-    print_success "New version tag: ${NEW_TAGS}"
-    echo ""
-fi
-
-exit 0
+main "$@"

@@ -1,0 +1,49 @@
+{
+  "$schema": "./tools/todo-tracker/todorc.schema.json",
+
+  "services": [
+    {
+      "name": "mobile",
+      "path": "services/mobile-new",
+      "include": ["src", "App.tsx", "scripts"],
+      "exclude": ["*.test.js", "*.spec.js"]
+    },
+    {
+      "name": "backend",
+      "path": "services/backend",
+      "include": ["src"],
+      "exclude": ["__pycache__", "*.pyc"]
+    }
+  ],
+
+  "output": {
+    "mode": "root",
+    "todoFile": "TODO.md",
+    "fixmeFile": "FIXME.md",
+    "stateDir": ".todo-tracker"
+  },
+
+  "defaults": {
+    "exclude": [
+      "node_modules",
+      ".git",
+      "dist",
+      "build",
+      ".next",
+      "coverage",
+      "*.min.js",
+      "*.bundle.js",
+      "*.lock",
+      "*.md",
+      "README*",
+      "__test_fixtures__"
+    ]
+  },
+
+  "priorities": ["URGENT", "HIGH", "MEDIUM", "LOW"],
+
+  "tracking": {
+    "maxCompletedItems": 50,
+    "completedRetentionDays": 30
+  }
+}

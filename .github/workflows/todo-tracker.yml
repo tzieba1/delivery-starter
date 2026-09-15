@@ -1,0 +1,120 @@
+# GitHub Actions workflow for TODO/FIXME tracking
+#
+# This workflow:
+# 1. Syncs TODO.md on every push
+# 2. Reports TODO statistics in PR comments
+# 3. Fails if URGENT TODOs exceed threshold
+# 4. Creates issues for stale TODOs (optional)
+#
+
+name: TODO Tracker
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  sync-todos:
+    name: Sync TODO Tracking
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for accurate tracking
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            tools/todo-tracker-rust/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('tools/todo-tracker-rust/Cargo.lock') }}
+
+      - name: Build todo-tracker
+        run: |
+          cd tools/todo-tracker-rust
+          cargo build --release
+
+      - name: Sync TODOs
+        id: sync
+        run: |
+          ./tools/todo-tracker-rust/target/release/todo-tracker --all --verbose
+
+          # Capture stats for PR comment
+          TODO_COUNT=$(grep -c "^\- \[ \]" TODO.md 2>/dev/null || echo "0")
+          FIXME_COUNT=$(grep -c "^\- \[ \]" FIXME.md 2>/dev/null || echo "0")
+          URGENT_COUNT=$(grep -c "\[URGENT\]" TODO.md 2>/dev/null || echo "0")
+
+          echo "todo_count=$TODO_COUNT" >> $GITHUB_OUTPUT
+          echo "fixme_count=$FIXME_COUNT" >> $GITHUB_OUTPUT
+          echo "urgent_count=$URGENT_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet TODO.md FIXME.md .todo-tracker/; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit TODO updates
+        if: steps.changes.outputs.changed == 'true' && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add TODO.md FIXME.md .todo-tracker/
+          git commit -m "chore: sync TODO/FIXME tracking [skip ci]" || true
+          git push
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const todoCount = '${{ steps.sync.outputs.todo_count }}';
+            const fixmeCount = '${{ steps.sync.outputs.fixme_count }}';
+            const urgentCount = '${{ steps.sync.outputs.urgent_count }}';
+            const changed = '${{ steps.changes.outputs.changed }}';
+
+            let body = `## 📋 TODO Tracker Report\n\n`;
+            body += `| Metric | Count |\n|--------|-------|\n`;
+            body += `| Active TODOs | ${todoCount} |\n`;
+            body += `| Active FIXMEs | ${fixmeCount} |\n`;
+            body += `| **URGENT** items | ${urgentCount} |\n\n`;
+
+            if (changed === 'true') {
+              body += `⚠️ This PR introduces TODO/FIXME changes.\n`;
+            } else {
+              body += `✅ No TODO/FIXME tracking changes.\n`;
+            }
+
+            if (parseInt(urgentCount) > 0) {
+              body += `\n🚨 **Warning:** ${urgentCount} URGENT item(s) require attention.\n`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Fail on too many URGENTs
+        if: steps.sync.outputs.urgent_count > 5
+        run: |
+          echo "::error::Too many URGENT TODOs (${{ steps.sync.outputs.urgent_count }})"
+          exit 1
