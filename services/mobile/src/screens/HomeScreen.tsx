@@ -14,7 +14,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { apiClient } from '../api/client';
+import { apiClient, getApiErrorMessage } from '../api/client';
 import { OrderCreate } from '../types/api';
 
 export default function HomeScreen() {
@@ -78,12 +78,9 @@ export default function HomeScreen() {
           },
         ]
       );
-    } catch (error: any) {
+    } catch (error) {
       console.error('Order creation failed:', error);
-      Alert.alert(
-        'Error',
-        error.response?.data?.detail || 'Failed to create order'
-      );
+      Alert.alert('Error', getApiErrorMessage(error, 'Failed to create order'));
     } finally {
       setLoading(false);
     }

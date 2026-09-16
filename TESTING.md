@@ -17,10 +17,10 @@ make test-backend
 
 2. **pytest configuration** - `services/backend/pytest.ini`
    - Configured test discovery
-   - Enabled coverage reporting (88% coverage achieved)
+   - Enabled coverage reporting (86% coverage achieved)
    - Organized test markers
 
-3. **Test fixtures** - `services/backend/tests/fixtures.py`
+3. **Test fixtures** - `services/backend/tests/conftest.py`
    - `client`: FastAPI TestClient
    - `sample_order_data`: Valid order payload
    - `created_order`: Pre-created order
@@ -71,10 +71,21 @@ make test-backend
 ## Test Results
 
 ```
-✓ 15 passed in 0.08s
-✓ 88% code coverage
-✓ Fast execution (< 100ms)
+✓ 15 passed in 0.25s
+✓ 86% code coverage
+✓ Fast execution (< 1s)
 ```
+
+## Mobile Tests
+
+```bash
+make test-mobile        # jest (jest-expo preset)
+cd services/mobile && npm run lint        # eslint 9 flat config
+cd services/mobile && npm run type-check  # tsc --noEmit
+```
+
+`src/__tests__/api.test.ts` asserts the mobile `OrderStatus` enum still
+matches the backend's, which is the contract most likely to drift.
 
 ## Adding More Tests
 

@@ -37,7 +37,7 @@ export default function ProfileScreen() {
     try {
       await apiClient.get('/health');
       setHealthStatus('healthy');
-    } catch (error) {
+    } catch {
       setHealthStatus('error');
     }
   };

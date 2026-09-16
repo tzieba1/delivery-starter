@@ -46,6 +46,26 @@ delivery-app/
 └── scripts/             # Build & deploy scripts
 ```
 
+## Running the Checks
+
+```bash
+make test-backend     # pytest in the development container (15 tests)
+make test-mobile      # jest (5 tests)
+make test-todos       # TODO tracker test suite
+```
+
+Backend tests can also run without Docker:
+
+```bash
+cd services/backend
+python -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+pytest
+```
+
+Requires Docker Compose v2 (`docker compose`, not the retired
+`docker-compose` v1) and Node 20+ for the Expo app.
+
 ## Deployment
 
 ### Backend

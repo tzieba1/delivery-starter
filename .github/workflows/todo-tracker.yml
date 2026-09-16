@@ -23,6 +23,10 @@ jobs:
     name: Sync TODO Tracking
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,7 +34,7 @@ jobs:
           fetch-depth: 0  # Full history for accurate tracking
 
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -65,7 +69,7 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          if git diff --quiet TODO.md FIXME.md .todo-tracker/; then
+          if git diff --quiet -- TODO.md FIXME.md; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
@@ -76,7 +80,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add TODO.md FIXME.md .todo-tracker/
+          git add TODO.md FIXME.md
           git commit -m "chore: sync TODO/FIXME tracking [skip ci]" || true
           git push
 

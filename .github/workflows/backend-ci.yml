@@ -4,8 +4,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Build and test
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # version.py derives the version from git describe
+      - name: Build development image
         run: |
-          docker-compose -f infrastructure/docker-compose.yml build
-          docker-compose -f infrastructure/docker-compose.yml run backend pytest
+          docker compose -f infrastructure/docker-compose.yml \
+                         -f infrastructure/docker-compose.dev.yml build backend
+      - name: Run tests
+        run: |
+          docker compose -f infrastructure/docker-compose.yml \
+                         -f infrastructure/docker-compose.dev.yml run --rm backend pytest
+      - name: Tear down
+        if: always()
+        run: |
+          docker compose -f infrastructure/docker-compose.yml \
+                         -f infrastructure/docker-compose.dev.yml down -v

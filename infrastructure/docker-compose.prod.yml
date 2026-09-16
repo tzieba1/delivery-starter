@@ -3,6 +3,10 @@ services:
     build:
       target: production
     restart: unless-stopped
+    # scripts/health-check.sh probes http://localhost:8000/health after deploy,
+    # so the API has to be published on the host.
+    ports:
+      - "8000:8000"
     environment:
       DEBUG: "false"
       WORKERS: 4

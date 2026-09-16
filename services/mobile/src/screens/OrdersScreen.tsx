@@ -16,7 +16,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { apiClient } from '../api/client';
+import { apiClient, getApiErrorMessage } from '../api/client';
 import { OrderResponse } from '../types/api';
 
 export default function OrdersScreen() {
@@ -29,9 +29,9 @@ export default function OrdersScreen() {
     try {
       const response = await apiClient.get('/api/v1/orders');
       setOrders(response.data);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to fetch orders:', error);
-      Alert.alert('Error', 'Failed to load orders');
+      Alert.alert('Error', getApiErrorMessage(error, 'Failed to load orders'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -52,7 +52,10 @@ export default function OrdersScreen() {
       const response = await apiClient.get(`/api/v1/orders/${orderId}`);
       setSelectedOrder(response.data);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load order details');
+      Alert.alert(
+        'Error',
+        getApiErrorMessage(error, 'Failed to load order details')
+      );
     }
   };
 
@@ -70,10 +73,10 @@ export default function OrdersScreen() {
               await apiClient.delete(`/api/v1/orders/${orderId}`);
               fetchOrders(); // Refresh list
               setSelectedOrder(null);
-            } catch (error: any) {
+            } catch (error) {
               Alert.alert(
                 'Error',
-                error.response?.data?.detail || 'Failed to cancel order'
+                getApiErrorMessage(error, 'Failed to cancel order')
               );
             }
           },

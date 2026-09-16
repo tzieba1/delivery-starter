@@ -151,9 +151,30 @@ export const checkApiConnection = async (): Promise<boolean> => {
   try {
     await apiClient.get('/health');
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
+};
+
+/**
+ * Extract a human-readable message from an unknown error.
+ *
+ * The backend returns validation and business-rule failures as
+ * `{ "detail": "..." }`, so prefer that when present and fall back to a
+ * caller-supplied message for network errors and non-Axios throws.
+ */
+export const getApiErrorMessage = (
+  error: unknown,
+  fallback: string
+): string => {
+  if (axios.isAxiosError(error)) {
+    const detail = (error.response?.data as { detail?: unknown } | undefined)
+      ?.detail;
+    if (typeof detail === 'string' && detail.length > 0) {
+      return detail;
+    }
+  }
+  return fallback;
 };
 
 /**

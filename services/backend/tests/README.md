@@ -11,22 +11,22 @@ make test-backend
 
 ### Using Docker Compose Directly
 ```bash
-docker-compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.dev.yml run --rm backend pytest
+docker compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.dev.yml run --rm backend pytest
 ```
 
 ### Run Specific Tests
 ```bash
-docker-compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.dev.yml run --rm backend pytest tests/test_api.py::TestOrderFlow
+docker compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.dev.yml run --rm backend pytest tests/test_api.py::TestOrderFlow
 ```
 
 ### Run with Verbose Output
 ```bash
-docker-compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.dev.yml run --rm backend pytest -v
+docker compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.dev.yml run --rm backend pytest -v
 ```
 
 ### Run Without Coverage Report
 ```bash
-docker-compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.dev.yml run --rm backend pytest --no-cov
+docker compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.dev.yml run --rm backend pytest --no-cov
 ```
 
 ## Test Structure
@@ -34,7 +34,7 @@ docker-compose -f infrastructure/docker-compose.yml -f infrastructure/docker-com
 ```
 tests/
 ├── README.md           # This file
-├── fixtures.py         # Test fixtures and setup
+├── conftest.py         # Test fixtures and setup
 └── test_api.py         # API integration tests
 ```
 

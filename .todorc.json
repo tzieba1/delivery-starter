@@ -4,7 +4,7 @@
   "services": [
     {
       "name": "mobile",
-      "path": "services/mobile-new",
+      "path": "services/mobile",
       "include": ["src", "App.tsx", "scripts"],
       "exclude": ["*.test.js", "*.spec.js"]
     },
